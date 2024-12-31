@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"net"
+	"os"
 )
 
 var portFlag = flag.String("p", "8080", "port to listen to")
@@ -37,12 +37,15 @@ func handle(conn net.Conn) {
 		log.Printf("closed connection (%v)\n", conn.RemoteAddr())
 	}()
 
-	data, err := io.ReadAll(conn)
-	if err != nil {
-		panic(err)
-	}
+	io.Copy(os.Stdout, conn)
 
-	fmt.Println(string(data))
+	// warn: promlem here
+	// data, err := io.ReadAll(conn)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// fmt.Println(string(data))
 
 	// slices.Reverse(data)
 	//

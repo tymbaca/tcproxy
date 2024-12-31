@@ -24,7 +24,7 @@ func Parse(path string) (Config, error) {
 		Groups: []Group{
 			{
 				Port:     8080,
-				Strategy: RandomStrategy,
+				Strategy: RoundRobinStrategy,
 				Targets: []string{
 					"localhost:8090",
 					"localhost:8091",
