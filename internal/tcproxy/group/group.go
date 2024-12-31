@@ -73,22 +73,37 @@ func (g *Group) handleConn(ctx context.Context, clientConn net.Conn) {
 	defer serverConn.Close()
 
 	log.Printf("established connection (client: %v, server: %v)", clientConn.RemoteAddr(), serverConn.RemoteAddr())
+	defer log.Printf("closed connection (client: %v, server: %v)", clientConn.RemoteAddr(), serverConn.RemoteAddr())
 
-	var wg errgroup.Group
+	wg, ctx := errgroup.WithContext(ctx)
 	wg.Go(func() error {
-		// TODO: wg context mutual cancelation
-		_, err := io.Copy(serverConn, clientConn)
-		return err
+		// TODO wg context mutual cancelation
+		return copyWithContext(ctx, serverConn, clientConn)
 	})
-	wg.Go(func() error {
-		_, err := io.Copy(clientConn, serverConn)
-		return err
-	})
+	// wg.Go(func() error {
+	// 	return copyWithContext(ctx, clientConn, serverConn)
+	// })
 
 	if err := wg.Wait(); err != nil {
 		log.Printf("can't tranfer data: %s", err)
 		return
 	}
+}
+
+func copyWithContext(ctx context.Context, dst io.WriteCloser, src io.ReadCloser) error {
+	go func() {
+		<-ctx.Done()
+		dst.Close()
+		src.Close()
+	}()
+
+	// warn: we don't want to return error if context canceled
+	_, err := io.Copy(dst, src)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func newStrategy(cfg config.Group) (strategy.Strategy, error) {

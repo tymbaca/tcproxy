@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net"
-	"slices"
 )
 
 var portFlag = flag.String("p", "8080", "port to listen to")
@@ -42,10 +42,12 @@ func handle(conn net.Conn) {
 		panic(err)
 	}
 
-	slices.Reverse(data)
+	fmt.Println(string(data))
 
-	_, err = conn.Write(data)
-	if err != nil {
-		panic(err)
-	}
+	// slices.Reverse(data)
+	//
+	// _, err = conn.Write(data)
+	// if err != nil {
+	// 	panic(err)
+	// }
 }
