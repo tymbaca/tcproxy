@@ -2,16 +2,16 @@ package strategy
 
 import "sync"
 
-func NewRoundRobin(targets []string) *RoundRobin {
-	return &RoundRobin{
-		targets: targets,
-	}
-}
-
 type RoundRobin struct {
 	mu        sync.Mutex
 	nextIndex int
 	targets   []string
+}
+
+func NewRoundRobin(targets []string) *RoundRobin {
+	return &RoundRobin{
+		targets: targets,
+	}
 }
 
 func (s *RoundRobin) GetTarget() string {

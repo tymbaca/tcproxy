@@ -13,6 +13,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type Group struct {
+	cfg      config.Group
+	strategy strategy.Strategy
+}
+
 func New(cfg config.Group) (*Group, error) {
 	strategy, err := newStrategy(cfg)
 	if err != nil {
@@ -23,11 +28,6 @@ func New(cfg config.Group) (*Group, error) {
 		cfg:      cfg,
 		strategy: strategy,
 	}, nil
-}
-
-type Group struct {
-	cfg      config.Group
-	strategy strategy.Strategy
 }
 
 func (g *Group) Run(ctx context.Context) error {
@@ -61,7 +61,7 @@ func (g *Group) listen(ctx context.Context, l net.Listener) {
 	}
 }
 
-func (g *Group) handleConn(ctx context.Context, clientConn net.Conn) {
+func (g *Group) handleConn(_ context.Context, clientConn net.Conn) {
 	defer clientConn.Close()
 
 	serverAddr := g.strategy.GetTarget()
@@ -78,14 +78,12 @@ func (g *Group) handleConn(ctx context.Context, clientConn net.Conn) {
 
 	var wg errgroup.Group
 	wg.Go(func() error {
-		// TODO wg context mutual cancelation
 		return copyWithContext(serverConn, clientConn)
 	})
 	wg.Go(func() error {
 		return copyWithContext(clientConn, serverConn)
 	})
 
-	// doesn't stop when client conn is closed
 	if err := wg.Wait(); err != nil {
 		log.Printf("can't tranfer data: %s", err)
 		return

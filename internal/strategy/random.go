@@ -2,14 +2,14 @@ package strategy
 
 import "math/rand"
 
+type Random struct {
+	targets []string
+}
+
 func NewRandom(targets []string) *Random {
 	return &Random{
 		targets: targets,
 	}
-}
-
-type Random struct {
-	targets []string
 }
 
 func (s *Random) GetTarget() string {
