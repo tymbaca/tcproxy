@@ -6,19 +6,19 @@ import (
 	conn_mw "github.com/tymbaca/tcproxy/pkg/middleware/conn"
 )
 
-type baseDialer struct {
+type dialer struct {
 	readMws  []conn_mw.Middleware
 	writeMws []conn_mw.Middleware
 }
 
-func newDialer(readMiddlewares, writeMiddlewares []conn_mw.Middleware) *baseDialer {
-	return &baseDialer{
+func newDialer(readMiddlewares, writeMiddlewares []conn_mw.Middleware) *dialer {
+	return &dialer{
 		readMws:  readMiddlewares,
 		writeMws: writeMiddlewares,
 	}
 }
 
-func (b *baseDialer) Dial(network, address string) (net.Conn, error) {
+func (b *dialer) Dial(network, address string) (net.Conn, error) {
 	conn, err := net.Dial(network, address)
 	if err != nil {
 		return nil, err

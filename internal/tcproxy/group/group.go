@@ -11,13 +11,14 @@ import (
 	"github.com/samber/lo"
 	"github.com/tymbaca/tcproxy/internal/config"
 	"github.com/tymbaca/tcproxy/internal/strategy"
+	"github.com/tymbaca/tcproxy/pkg/middleware/conn"
 	"golang.org/x/sync/errgroup"
 )
 
 type Group struct {
 	cfg      config.Group
 	strategy strategy.Strategy
-	dialer   dialer
+	dialer   *dialer
 }
 
 func New(cfg config.Group) (*Group, error) {
@@ -29,7 +30,10 @@ func New(cfg config.Group) (*Group, error) {
 	return &Group{
 		cfg:      cfg,
 		strategy: strategy,
-                dialer: ,
+		dialer: newDialer(
+			[]conn.Middleware{conn.WithReadLogging},
+			[]conn.Middleware{conn.WithWriteLogging},
+		),
 	}, nil
 }
 
@@ -69,7 +73,7 @@ func (g *Group) handleConn(_ context.Context, clientConn net.Conn) {
 
 	serverAddr := g.strategy.GetTarget()
 
-	serverConn, err := net.Dial(g.cfg.Protocol, serverAddr)
+	serverConn, err := g.dialer.Dial(g.cfg.Protocol, serverAddr)
 	if err != nil {
 		log.Printf("can't dial the target: %s", err)
 		return
