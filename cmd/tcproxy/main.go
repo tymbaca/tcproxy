@@ -12,7 +12,7 @@ import (
 	"github.com/tymbaca/tcproxy/internal/tcproxy"
 )
 
-var configPathFlag = flag.String("config", "tcproxy.yaml", "path to config file")
+var configPathFlag = flag.String("config", "tcproxy.hcl", "path to config file")
 
 func main() {
 	err := run()

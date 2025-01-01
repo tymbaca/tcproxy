@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/samber/lo"
 	"github.com/tymbaca/tcproxy/internal/config"
 	"github.com/tymbaca/tcproxy/internal/strategy"
 	"golang.org/x/sync/errgroup"
@@ -109,11 +110,13 @@ func copyWithContext(dst io.WriteCloser, src io.ReadCloser) error {
 }
 
 func newStrategy(cfg config.Group) (strategy.Strategy, error) {
+	targets := lo.Map(cfg.Targets, func(t config.Target, _ int) string { return t.Addr })
+
 	switch cfg.Strategy {
 	case config.RandomStrategy:
-		return strategy.NewRandom(cfg.Targets), nil
+		return strategy.NewRandom(targets), nil
 	case config.RoundRobinStrategy:
-		return strategy.NewRoundRobin(cfg.Targets), nil
+		return strategy.NewRoundRobin(targets), nil
 	}
 
 	return nil, fmt.Errorf("unsupported strategy: %s", cfg.Strategy)

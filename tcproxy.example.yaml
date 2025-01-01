@@ -1,8 +1,0 @@
-groups:
-  - port: 8080
-    # proto: tcp | udp
-    strategy: random # roundRobin # leastConn
-    targets:
-      - localhost:8090
-      - localhost:8091
-      - localhost:8092
