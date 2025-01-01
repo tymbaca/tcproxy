@@ -1,5 +1,6 @@
 group {
 	port = 8080
+    protocol = "tcp"
     strategy = "round_robin"
 
     // target { addr = "localhost:8090" }

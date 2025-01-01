@@ -17,6 +17,7 @@ import (
 type Group struct {
 	cfg      config.Group
 	strategy strategy.Strategy
+	dialer   dialer
 }
 
 func New(cfg config.Group) (*Group, error) {
@@ -28,11 +29,12 @@ func New(cfg config.Group) (*Group, error) {
 	return &Group{
 		cfg:      cfg,
 		strategy: strategy,
+                dialer: ,
 	}, nil
 }
 
 func (g *Group) Run(ctx context.Context) error {
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", g.cfg.Port))
+	l, err := net.Listen(g.cfg.Protocol, fmt.Sprintf(":%d", g.cfg.Port))
 	if err != nil {
 		return fmt.Errorf("can't listen: %w", err)
 	}
@@ -67,7 +69,7 @@ func (g *Group) handleConn(_ context.Context, clientConn net.Conn) {
 
 	serverAddr := g.strategy.GetTarget()
 
-	serverConn, err := net.Dial("tcp", serverAddr)
+	serverConn, err := net.Dial(g.cfg.Protocol, serverAddr)
 	if err != nil {
 		log.Printf("can't dial the target: %s", err)
 		return
@@ -113,9 +115,9 @@ func newStrategy(cfg config.Group) (strategy.Strategy, error) {
 	targets := lo.Map(cfg.Targets, func(t config.Target, _ int) string { return t.Addr })
 
 	switch cfg.Strategy {
-	case config.RandomStrategy:
+	case config.StrategyRandom:
 		return strategy.NewRandom(targets), nil
-	case config.RoundRobinStrategy:
+	case config.StrategyRoundRobin:
 		return strategy.NewRoundRobin(targets), nil
 	}
 

@@ -8,16 +8,24 @@ type Config struct {
 
 type Group struct {
 	Port     int      `hcl:"port"`
+	Protocol Protocol `hcl:"protocol"`
 	Strategy Strategy `hcl:"strategy"`
 	Targets  []Target `hcl:"target,block"`
 }
 
-type Strategy string
+type Strategy = string
 
 const (
-	RandomStrategy     Strategy = "random"
-	RoundRobinStrategy Strategy = "round_robin"
-	LeastConnStrategy  Strategy = "least_conn"
+	StrategyRandom     Strategy = "random"
+	StrategyRoundRobin Strategy = "round_robin"
+	StrategyLeastConn  Strategy = "least_conn"
+)
+
+type Protocol = string
+
+const (
+	ProtocolTCP Protocol = "tcp"
+	ProtocolUDP Protocol = "udp"
 )
 
 type Target struct {
