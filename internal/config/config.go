@@ -16,8 +16,8 @@ type Strategy string
 
 const (
 	RandomStrategy     Strategy = "random"
-	RoundRobinStrategy Strategy = "roundRobin"
-	LeastConnStrategy  Strategy = "leastConn"
+	RoundRobinStrategy Strategy = "round_robin"
+	LeastConnStrategy  Strategy = "least_conn"
 )
 
 type Target struct {
