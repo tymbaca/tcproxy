@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync/atomic"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/tymbaca/tcproxy/internal/config"
@@ -19,6 +21,8 @@ type Group struct {
 	cfg      config.Group
 	strategy strategy.Strategy
 	dialer   *dialer
+
+	byteCount atomic.Uint64
 }
 
 func New(cfg config.Group) (*Group, error) {
@@ -27,14 +31,25 @@ func New(cfg config.Group) (*Group, error) {
 		return nil, fmt.Errorf("can't init strategy: %w", err)
 	}
 
-	return &Group{
+	g := &Group{
 		cfg:      cfg,
 		strategy: strategy,
-		dialer: newDialer(
-			[]conn.Middleware{conn.WithReadLogging},
-			[]conn.Middleware{conn.WithWriteLogging},
-		),
-	}, nil
+	}
+
+	g.dialer = newDialer(
+		[]conn.Middleware{conn.WithReadLogging, conn.WithByteCounter(g.addByteCount)},
+		[]conn.Middleware{conn.WithWriteLogging, conn.WithByteCounter(g.addByteCount)},
+	)
+
+	// TODO: remove
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			log.Printf("total byte count: %d\n", g.byteCount.Load())
+		}
+	}()
+
+	return g, nil
 }
 
 func (g *Group) Run(ctx context.Context) error {
@@ -95,6 +110,10 @@ func (g *Group) handleConn(_ context.Context, clientConn net.Conn) {
 		log.Printf("can't tranfer data: %s", err)
 		return
 	}
+}
+
+func (g *Group) addByteCount(delta int) {
+	g.byteCount.Add(uint64(delta))
 }
 
 func copyWithContext(dst io.WriteCloser, src io.ReadCloser) error {

@@ -4,6 +4,8 @@ import "net"
 
 type Handler func(b []byte) (n int, err error)
 
+type Middleware func(conn net.Conn, next Handler) Handler
+
 type Conn struct {
 	net.Conn
 	readHandler  Handler
@@ -27,4 +29,12 @@ func (c *Conn) Read(b []byte) (n int, err error) {
 
 func (c *Conn) Write(b []byte) (n int, err error) {
 	return c.writeHandler(b)
+}
+
+func wrapHandler(conn net.Conn, handler Handler, middlewares ...Middleware) Handler {
+	for _, mw := range middlewares {
+		handler = mw(conn, handler)
+	}
+
+	return handler
 }
